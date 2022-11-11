@@ -9,6 +9,8 @@ np.set_printoptions(precision=20)
 class FCLayer(Layer):
 
     def __init__(self, n_inputs, n_neurons, dropout_ratio, activation_function):
+        self.type = "Fully Connected (FCLayer)"
+        
         self.n_inputs = n_inputs
         self.n_neurons = n_neurons
         self.W = None
@@ -17,10 +19,7 @@ class FCLayer(Layer):
         self.act, self.d_act = activationFunctions.get(activation_function)
 
         self.dropout_ratio = dropout_ratio
-        
-    def setLayerID(self, id):
-        self.layerID = id
-    
+
     def dropout(self, y):
         m, n = y.shape
         ym = np.zeros((m,n)).flatten()

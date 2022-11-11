@@ -1,4 +1,3 @@
-
 from scipy.special import xlogy
 import numpy as np
 
@@ -17,6 +16,7 @@ FILE THAT HAVE ALL FUNCTIONS WE USE TO TRAIN THE NEURAL NETWOK
 -> Gradient Descent
 -> RMSProp
 -> NAdam
+-> Adam
 -> More to add
 """
 
@@ -60,8 +60,14 @@ Params:
 """
 def sst(Targets):
     return np.sum(np.square(Targets - np.mean(Targets)))
-
+ 
 """
+Calculation of Cross Entropy
+Params:
+-> Targets : Real values for the error
+-> Predict : Predicted values while training
+
+NOTE: It's implementation of multiclass cross Entropy
 """
 def cross_entropy(Targets, Predict):
 

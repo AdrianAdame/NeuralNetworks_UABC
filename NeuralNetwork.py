@@ -1,3 +1,4 @@
+from tabulate import tabulate
 from utils.NeuralNetwork_Utils import *
 
 np.set_printoptions(precision=20)
@@ -6,7 +7,6 @@ np.set_printoptions(precision=20)
 TODO:
 -> Add function self.add() to append layers without a list
 -> Add parameters to initialize n layers generalized
--> Verify classification and regression problems
 -> Optimize code (Verify parts where a code repeats and place it in a separate function)
 """
 
@@ -21,8 +21,7 @@ class NeuralNetwork:
         
         if learning_method == 'mini-batch':
             self.batch_size = batch_size
-        
-        
+                
         #PERFORMANCE FUNCTION
         self.perfunc, self.perfunc_name = performance_functions.get(performance_function)
         self.min_grad = ming_grad
@@ -41,13 +40,23 @@ class NeuralNetwork:
         #if((layers_type != '' and hidden_layers != (100,) and n_inputs != 0 and n_targets != 0) and layers == None):
         #    layers = []
 
-        layerID = 1
         for layer in self.layers:
-            layer.setLayerID(layerID)
-            layer.initialize_w_b(initialize_weight_bias)
-            layerID += 1
-            
-    
+            layer.initialize_w_b(initialize_weight_bias)            
+
+    def summary(self):
+        print("\t\t*** NEURAL NETWORK SUMMARY ***\n\n")
+        headersLayersTable = ["Layer (type)", "Shape (IN , OUT)", "No. Weights" , "No. biases"]
+
+        bodyLayersTable = [[
+            layer.type, 
+            (layer.n_inputs, layer.n_neurons), 
+            layer.n_neurons * layer.n_inputs, 
+            layer.n_neurons
+        ] for layer in self.layers]
+        
+        print("\t\t << Layer configuration >>")
+        print(tabulate(bodyLayersTable, headersLayersTable))
+
     def _update_weigths(self):
         WE_array = list()
         dWE_array = list()
@@ -225,7 +234,9 @@ class NeuralNetwork:
                     
                     if(np.linalg.norm(gradient_vector) < self.min_grad):
                         break
-                    
+
+        self.firstpass = 1         
+    
     def predict(self, test_data):
         A = test_data
         for layer in self.layers:

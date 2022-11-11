@@ -2,22 +2,15 @@ from Layer_definitions.FCLayer import FCLayer
 import utils.utilities as utilities
 import NeuralNetwork as nn
 import numpy as np
+import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.neural_network import MLPRegressor
 
-inputs = np.array([
-    [4.7 , 6.0],
-    [6.1 , 3.9],
-    [2.9 , 4.2],
-    [7.0 , 5.5],
-])
+data_file_a = pd.read_csv("reaction_dataset.dat", sep=" ", header=None)
 
-targets = np.array([
-    [3.52 , 4.02],
-    [5.43 , 6.23],
-    [4.95 , 5.76],
-    [4.70 , 4.28],
-])
+inputs = np.array(data_file_a.iloc[:, 1:-1])
+targets = np.array(data_file_a.iloc[:,-1:])
 
 #NUMBER OF INPUTS/OUTPUTS THE NN WILL HAVE
 #THE LAYER LIST WORKS AS: 
@@ -25,44 +18,43 @@ targets = np.array([
 # N HIDDEN LAYERS
 # OUTPUT LAYER
 layers = [
-    FCLayer(inputs.shape[1], 3, 0, 'tanh'),
-    FCLayer(3, 3, 0, 'ReLU'),
-    FCLayer(3, targets.shape[1], 0, 'tanh')
+    FCLayer(inputs.shape[1], 100, 0, 'tanh'),
+    FCLayer(100,100,0.2, 'tanh'),
+    FCLayer(100,100,0.2, 'tanh'),
+    FCLayer(100, targets.shape[1], 0, 'tanh')
 ]
 
 #TO PERFORM A GOOD TRAINING WE NEED TO NORMALIZE DATA
-scaler = MinMaxScaler(feature_range=(0,1))
+scaler = MinMaxScaler(feature_range=(-1,1))
 
 inputs_normalized = scaler.fit_transform(inputs)
 targets_normalized = scaler.fit_transform(targets)
 
+#NOW NORMALIZED WE CAN SPLIT INTO TRAIN - VALIDATION - TEST
+#datasets = utilities.train_valid_test_split(inputs_normalized, targets_normalized, train_size = .6, valid_size=.2, test_size=.2)
+
 nn_test = nn.NeuralNetwork(
     layers,
     initialize_weight_bias = 'Widrow',
-    num_epoch_train = 300,
+    num_epoch_train = 1000,
     performance_function = 'mse',
     optimizer = 'Adam',
-    optimParams = {'Beta1' : 0.9, 'Beta2' : 0.999, 'Alpha' : 0.01},
-    ming_grad = 1e-10,
-    min_perf = 1e-5,
+    optimParams = {'Beta1' : 0.9, 'Beta2' : 0.999, 'Alpha' : 0.001},
+    ming_grad = 1e-5,
+    min_perf = 1e-10,
     learning_method = 'batch',
     batch_size = 20
 )
 
-#WE TRAIN THE NEURAL NETWORK GIVEN THE INPUT AND TARGETS NORMALIZED
 nn_test.train(inputs_normalized.T, targets_normalized.T, verbose = True)
 
-#WE CALCULATE A PREDICTION AFTER TRAINING
 res = nn_test.predict(inputs_normalized.T)
 nn_predict = scaler.inverse_transform(res.T)
 
-#OUTPUT
 print(targets)
 print(nn_predict)
 
-#CREATION OF PERFORMACE GRAPH - LOSS PER EPOCH
 perf_values = nn_test.create_performance_graph()
 utilities.plot_generic_graph(perf_values[0], perf_values[1])
 
-#IN THE CASE OF REGRESSION WE PLOT THE CORRELATION COEFICIENT
 utilities.plot_regression_graph(targets, nn_predict)

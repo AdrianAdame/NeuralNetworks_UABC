@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.neural_network import MLPRegressor
 
 data_file_a = pd.read_csv('bodyfat_dataset.dat', sep="\t", header=None)
 
