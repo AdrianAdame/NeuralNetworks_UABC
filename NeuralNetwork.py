@@ -1,5 +1,7 @@
+import os
 from tabulate import tabulate
 from utils.NeuralNetwork_Utils import *
+import glob
 
 np.set_printoptions(precision=20)
 
@@ -8,10 +10,11 @@ TODO:
 -> Add function self.add() to append layers without a list
 -> Add parameters to initialize n layers generalized
 -> Optimize code (Verify parts where a code repeats and place it in a separate function)
+-> Verify when to update weights in validation function
 """
 
 class NeuralNetwork:
-    def __init__(self, layers, layers_type = '', hidden_layers = (100,), n_inputs = 0, n_targets = 0, initialize_weight_bias = 'Widrow', num_epoch_train = 300,  performance_function = 'sse', optimizer = 'RMSProp', optimParams = {'Alpha' : 0.9, 'Beta' : 0.001},  ming_grad = 1e-5, min_perf = 1e-5, learning_method = 'batch', batch_size = 30):
+    def __init__(self, layers, initialize_weight_bias = 'Widrow', num_epoch_train = 300,  performance_function = 'sse', optimizer = 'RMSProp', optimParams = {'Alpha' : 0.9, 'Beta' : 0.001},  ming_grad = 1e-5, min_perf = 1e-5, learning_method = 'batch', batch_size = 30):
 
         #NUMBER OF ITERATIONS TO TRAIN THE NETWORK
         self.num_epochs = num_epoch_train
@@ -83,7 +86,62 @@ class NeuralNetwork:
         
         return gradient_vector
 
-    def train(self, inputs, targets, verbose = False):
+    def _validate(self, inputs, targets, verbose = False):
+        #THE VALIDATION IS VIA BATCH METHOD
+
+        #WE STORE TRAINED WEIGHTS IN CASE THIS IS THE BEST PERFORMANCE
+        best_WE = list()
+
+        #Fast forward
+        #FOR EACH LAYER WE PERFORM THE FORWARD PROPAGATION
+        A = inputs
+        for layer in self.layers:
+            A = layer.forward_propagation(A)
+        
+        best_perf = self.perfunc(targets, A)
+
+        for layer in self.layers:
+            best_WE.append(layer.WE)
+        
+        #We train the model again, verifying that the new weights are better than the ones we already calculate
+        for epoch in range(self.num_epochs):
+            #WE GET ALL INPUTS IN A
+            A = inputs
+                    
+            #FOR EACH LAYER WE PERFORM THE FORWARD PROPAGATION
+            for layer in self.layers:
+                A = layer.forward_propagation(A)
+                
+            #WE CALCULATE THE ERROR GIVEN THE BATCHED TARGETS AND A
+            if self.perfunc_name == 'CROSS-ENTROPY':
+                e = A - targets
+            else:
+                e = targets - A                    
+                
+            #WE CALCULATE THE PERFORMANCE FROM THE TARGETS AND RESULTS FROM THE FORWARD PROPAGATION
+            perf = self.perfunc(targets, A)
+
+            if self.perfunc_name == 'CROSS-ENTROPY':
+                WE, delta = self.layers[-1].back_propagation_lastLayer_crossEntropy(layer.A_prev, e)
+            else: 
+                WE, delta = self.layers[-1].back_propagation_lastLayer(layer.A_prev, e)
+                
+            for layer in reversed(self.layers[:-1]):
+                WE, delta = layer.back_propagation(layer.A, WE, delta)
+
+            if verbose == True:
+                print("Epoch {} : {} : {}".format(epoch, self.perfunc_name, perf))
+                
+            if perf >= best_perf:
+                best_perf = perf
+                _ = self._update_weigths()
+            else:
+                i = 0
+                for layer in self.layers:
+                     layer.WE = best_WE[i]
+                     i += 1
+
+    def train(self, inputs, targets, validation_data = None, verbose = False):
         self.perf = list()
         
         if self.learning_method == 'mini-batch':
@@ -235,7 +293,11 @@ class NeuralNetwork:
                     if(np.linalg.norm(gradient_vector) < self.min_grad):
                         break
 
-        self.firstpass = 1         
+        self.firstpass = 1
+
+        if validation_data != None:
+            print("Validation data found, we validate the model updating if necesary")
+            self._validate(validation_data[0], validation_data[1], verbose= verbose)         
     
     def predict(self, test_data):
         A = test_data
@@ -245,3 +307,18 @@ class NeuralNetwork:
 
     def create_performance_graph(self):
         return self.numEpochs, self.perf
+
+    def save_model(self):
+        num_layer = 0
+        for layer in self.layers:
+            string = f"weights_layer_{num_layer}.npy"
+            np.savetxt(string, layer.WE)
+            num_layer += 1
+
+    def load_model(self):
+        npyCounter = len(glob.glob1("","*.npy"))
+
+        for i in range(npyCounter):
+            string = f"weights_layer_{i}.npy"
+            self.layers[0].WE = np.load(string, allow_pickle= True)
+

@@ -141,7 +141,7 @@ def Adam(wt, dw, optimParams):
     else:
         mt = np.zeros((n,1))
         vt = np.zeros((n,1))
-    
+
     #Algoritmo
     mt = beta_1 * mt + (1-beta_1) * dw
     vt = beta_2 * vt + (1-beta_2) * np.power(dw, 2)
