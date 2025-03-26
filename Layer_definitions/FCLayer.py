@@ -80,8 +80,8 @@ class FCLayer(Layer):
 
     def forward_propagation(self, A_prev):
         self.A_prev = A_prev
-        self.A_extended = np.vstack((self.A_prev, np.ones((1, self.A_prev.shape[1]))))
-        self.Z = np.matmul(self.WE, self.A_extended)
+        self.A_prev_ext = np.vstack((self.A_prev, np.ones((1, self.A_prev.shape[1]))))
+        self.Z = np.matmul(self.WE, self.A_prev_ext)
         self.A = self.act(self.Z)
         
         #NUEVO
@@ -90,32 +90,25 @@ class FCLayer(Layer):
 
         return self.A
     
-    def back_propagation(self, A, WE_prev, delta_prev):
-        self.A_extended = np.vstack((self.A_prev, np.ones((1, self.A_prev.shape[1]))))
-        df_net = self.d_act(A)
+    def back_propagation(self, WE_prev, delta_prev):
+        df_net = self.d_act(self.Z)
+        self.delta = np.multiply(df_net, np.matmul(WE_prev[:,:-1].T, delta_prev))
+        self.dE_dWE = np.matmul(self.delta, self.A_prev_ext.T)
         
-        delta = np.multiply(df_net, np.matmul(WE_prev[:,:-1].T, delta_prev))
-        self.delta = delta
-        self.dE_dWE = np.matmul(delta, self.A_extended.T)
-        
-        return self.WE, delta
+        return self.WE, self.delta
 
-    def back_propagation_lastLayer(self, A, error):
-        self.A_extended = np.vstack((A, np.ones((1, A.shape[1]))))
-        df_net = self.d_act(self.A)
+    def back_propagation_lastLayer(self, error):
+        df_net = self.d_act(self.Z)
         delta = np.multiply(df_net, (-2 * error))
-        self.WE_prev = self.WE
-        self.dE_dWE = np.matmul(delta, self.A_extended.T)
+        self.dE_dWE = np.matmul(delta, self.A_prev_ext.T)
 
-        return self.WE_prev, delta
+        return self.WE, delta
     
-    def back_propagation_lastLayer_crossEntropy(self, A, error):
-        self.A_extended = np.vstack((A, np.ones((1, A.shape[1]))))
+    def back_propagation_lastLayer_crossEntropy(self, error):
         delta = error
-        self.WE_prev = self.WE
         self.delta = delta
-        self.dE_dWE = np.matmul(delta, self.A_extended.T)
-        return self.WE_prev, delta
+        self.dE_dWE = np.matmul(delta, self.A_prev_ext.T)
+        return self.WE, delta
 
     def getWE(self):
         return self.WE, self.WE.shape

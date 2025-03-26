@@ -184,12 +184,12 @@ class NeuralNetwork:
                     perf_per_batch += perf
 
                     if self.perfunc_name == "CROSS-ENTROPY":
-                        WE, delta = self.layers[-1].back_propagation_lastLayer_crossEntropy(layer.A_prev, e)
+                        WE, delta = self.layers[-1].back_propagation_lastLayer_crossEntropy(e)
                     else: 
-                        WE, delta = self.layers[-1].back_propagation_lastLayer(layer.A_prev, e)
+                        WE, delta = self.layers[-1].back_propagation_lastLayer(e)
 
                     for layer in reversed(self.layers[:-1]):
-                        WE, delta = layer.back_propagation(layer.A, WE, delta)
+                        WE, delta = layer.back_propagation(WE, delta)
 
                     gradient_vector = self._update_weigths()
 

@@ -34,7 +34,7 @@ def softmax(x):
     return e_x / e_x.sum(axis=0)
 
 def notI(x):
-    return 0
+    return np.zeros(x.shape)
 
 activationFunctions = {
     'tanh'    : (tanh, d_tanh),
