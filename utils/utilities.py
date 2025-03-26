@@ -21,7 +21,7 @@ Params:
 def train_valid_test_split(X, Y, train_size = .6, valid_size = .2, test_size = .2, random_state = None):
     if train_size + valid_size + test_size == 1:
 
-        X_train, X_temp, Y_train, Y_temp = train_test_split(X, Y, test_size = (1.0 - train_size), random_state = random_state)
+        X_train, X_temp, Y_train, Y_temp = train_test_split(X, Y, test_size = (1.0 - train_size), random_state = random_state, shuffle=True)
 
         relative_test = test_size / (valid_size + test_size)
 

@@ -42,7 +42,7 @@ datasets = utilities.train_valid_test_split(inputs, targets, train_size = .6, va
 nn_test = nn.NeuralNetwork(
     layers,
     initialize_weight_bias = 'Xavier',
-    num_epoch_train = 1000,
+    num_epoch_train = 100,
     performance_function = 'cross-entropy',
     optimizer= 'Adam',
     optimParams= {'Beta1' : 0.9, 'Beta2' : 0.999, 'Alpha' : 0.001},

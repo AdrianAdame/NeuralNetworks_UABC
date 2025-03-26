@@ -75,7 +75,7 @@ class NeuralNetwork:
         
         vector_to_optimize = matrix_to_vector(WE_array)
         gradient_vector = matrix_to_vector(dWE_array)
-                    
+        
         optimized_vector = self.optimizer(vector_to_optimize, gradient_vector, self.optimParams)
 
         matrix_obtained = vector_to_matrix(optimized_vector, WE_shapes)
@@ -117,7 +117,7 @@ class NeuralNetwork:
                 e = A - targets
             else:
                 e = targets - A                    
-                
+
             #WE CALCULATE THE PERFORMANCE FROM THE TARGETS AND RESULTS FROM THE FORWARD PROPAGATION
             perf = self.perfunc(targets, A)
 
@@ -187,7 +187,7 @@ class NeuralNetwork:
                         WE, delta = self.layers[-1].back_propagation_lastLayer_crossEntropy(layer.A_prev, e)
                     else: 
                         WE, delta = self.layers[-1].back_propagation_lastLayer(layer.A_prev, e)
-                    
+
                     for layer in reversed(self.layers[:-1]):
                         WE, delta = layer.back_propagation(layer.A, WE, delta)
 

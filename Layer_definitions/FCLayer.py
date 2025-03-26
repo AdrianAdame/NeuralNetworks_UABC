@@ -93,6 +93,7 @@ class FCLayer(Layer):
     def back_propagation(self, A, WE_prev, delta_prev):
         self.A_extended = np.vstack((self.A_prev, np.ones((1, self.A_prev.shape[1]))))
         df_net = self.d_act(A)
+        
         delta = np.multiply(df_net, np.matmul(WE_prev[:,:-1].T, delta_prev))
         self.delta = delta
         self.dE_dWE = np.matmul(delta, self.A_extended.T)
